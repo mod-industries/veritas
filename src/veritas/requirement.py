@@ -41,9 +41,11 @@ class VersionRequirement:
         """Tuple of minimum and maximum versions imposed by the version requirement."""
 
         self.validate()
+
+        spec_max_constraints = [spec.max for spec in self.specs if spec.max is not None]
         return (
             max(spec.min for spec in self.specs),
-            min(spec.max for spec in self.specs if spec.max is not None) or None,
+            min(spec_max_constraints) if len(spec_max_constraints) > 0 else None,
         )
 
     def validate(self):
@@ -55,8 +57,10 @@ class VersionRequirement:
         """
 
         min_constraint = max(spec.min for spec in self.specs)
-        max_constraint = min(spec.max for spec in self.specs if spec.max is not None)
-        if min_constraint >= max_constraint:
+        spec_max_constraints = [spec.max for spec in self.specs if spec.max is not None]
+        max_constraint = min(spec_max_constraints) if len(spec_max_constraints) > 0 else None
+
+        if max_constraint is not None and min_constraint >= max_constraint:
             raise ParseError(
                 "Minimum version (inclusive) is greater than maximum version (exclusive) "
                 f'for requirement "{self!s}" (min: >={min_constraint}, max: <{max_constraint})'

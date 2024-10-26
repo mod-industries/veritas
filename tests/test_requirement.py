@@ -11,6 +11,7 @@ from veritas.requirement import VersionRequirement
         "1",
         "1, <2",
         "1, <2, <3",
+        ">1",
     ],
 )
 def test_VersionRequirement_parse(requirement: str):
