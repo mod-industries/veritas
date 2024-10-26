@@ -9,11 +9,11 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.10.0
     hooks:
       # Run the type checker.
       - id: mypy
-        additional_dependencies: [attrs]
+        additional_dependencies: []
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.6.0
     hooks:

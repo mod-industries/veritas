@@ -1,3 +1,3 @@
-# Modist Library Template
+# Veritas
 
-Template library for the Modist project.
+Semver-based version specifications and requirement parsing.

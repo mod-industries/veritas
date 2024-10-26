@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "modist-library-template"
+name = "veritas"
 version = "0.1.0"
-description = "Template library for the Modist project."
+description = "Semver-based version specifications and requirement parsing."
 requires-python = ">=3.12"
 authors = [{ name = "Stephen Bunn" }]
 readme = "README.md"
@@ -36,9 +36,9 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/mod-industries"
-Repository = "https://github.com/mod-industries/modist-library-template"
-Issues = "https://github.com/mod-industries/modist-library-template/issues"
-Changelog = "https://github.com/mod-industries/modist-library-template/blob/main/CHANGELOG.md"
+Repository = "https://github.com/mod-industries/veritas"
+Issues = "https://github.com/mod-industries/veritas/issues"
+Changelog = "https://github.com/mod-industries/veritas/blob/main/CHANGELOG.md"
 
 [tool.licensecheck]
 using = "PEP631:dev"
