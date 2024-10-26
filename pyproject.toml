@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 authors = [{ name = "Stephen Bunn" }]
 readme = "README.md"
 license = { file = "LICENSE" }
-keywords = ["mod-industries", "modist", "library"]
+keywords = ["mod-industries", "library", "semver", "version"]
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Developers",
@@ -18,7 +18,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = []
+dependencies = ["attrs>=23.2.0", "semver>=3.0.2"]
 
 [project.optional-dependencies]
 dev = [
