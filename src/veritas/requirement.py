@@ -38,7 +38,7 @@ class VersionRequirement:
 
     @property
     def constraints(self) -> tuple[Version, Version | None]:
-        """Tuple of minimum and maximum versions imposed by the version requirement."""
+        """Tuple of minimum (inclusive) and maximum (exclusive) versions imposed by the requirement."""
 
         self.validate()
 
@@ -65,3 +65,37 @@ class VersionRequirement:
                 "Minimum version (inclusive) is greater than maximum version (exclusive) "
                 f'for requirement "{self!s}" (min: >={min_constraint}, max: <{max_constraint})'
             )
+
+    def compare(self, version: Version) -> int:
+        """
+        Compare the given version to the version requirement.
+
+        Args:
+            version (Version): The version to compare.
+
+        Returns:
+            int: -1 if the version is less than the requirement, 0 if equal, 1 if greater.
+        """
+
+        min_constraint, max_constraint = self.constraints
+        if version < min_constraint:
+            return -1
+
+        # The max constraint is exclusive, so we also need to check if the version is equal to it
+        if max_constraint is not None and version >= max_constraint:
+            return 1
+
+        return 0
+
+    def check(self, version: Version) -> bool:
+        """
+        Check if the given version satisfies the version requirement.
+
+        Args:
+            version (Version): The version to check.
+
+        Returns:
+            bool: True if the version satisfies the requirement, False otherwise.
+        """
+
+        return self.compare(version) == 0

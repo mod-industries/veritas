@@ -139,7 +139,7 @@ class VersionSpec:
 
     @property
     def min(self) -> Version:
-        """Minimum version that satisfies the specification."""
+        """Minimum version (inclusive) that satisfies the specification."""
 
         if self.op in (VersionOperation.LT, VersionOperation.LTE):
             # When the version operation is LT or LTE, the minimum version the
@@ -161,7 +161,7 @@ class VersionSpec:
 
     @property
     def max(self) -> Version | None:
-        """Maximum version that satisfies the specification."""
+        """Maximum version (exclusive) that satisfies the specification."""
 
         if self.op in (
             VersionOperation.GT,

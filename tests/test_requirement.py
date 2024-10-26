@@ -55,3 +55,53 @@ def test_VersionRequirement_constraints(
     else:
         assert max_constraint is not None
         assert max_constraint == Version(*max_version)
+
+
+@pytest.mark.parametrize(
+    "pair",
+    [
+        ("1", (0, 1, 0)),
+        (">1", (1, 0, 0)),
+    ],
+)
+def test_VersionRequirement_compare_lt(pair: tuple[str, tuple[int, int, int]]):
+    requirement, version = pair
+    assert VersionRequirement.parse(requirement).compare(Version(*version)) == -1
+
+
+@pytest.mark.parametrize(
+    "pair",
+    [
+        ("1", (2, 0, 0)),
+        ("<1", (1, 0, 0)),
+    ],
+)
+def test_VersionRequirement_compare_gt(pair: tuple[str, tuple[int, int, int]]):
+    requirement, version = pair
+    assert VersionRequirement.parse(requirement).compare(Version(*version)) == 1
+
+
+@pytest.mark.parametrize(
+    "pair",
+    [
+        ("1", (1, 0, 0)),
+        (">=1", (1, 0, 0)),
+    ],
+)
+def test_VersionREquirement_compare_eq(pair: tuple[str, tuple[int, int, int]]):
+    requirement, version = pair
+    assert VersionRequirement.parse(requirement).compare(Version(*version)) == 0
+
+
+@pytest.mark.parametrize(
+    "pair",
+    [
+        ("1, 1", (1, 0, 0)),
+        ("1, <2", (1, 0, 0)),
+        ("1, <2, <3", (1, 0, 0)),
+        (">1", (2, 0, 0)),
+    ],
+)
+def test_VersionRequirement_check(pair: tuple[str, tuple[int, int, int]]):
+    requirement, version = pair
+    assert VersionRequirement.parse(requirement).check(Version(*version))
