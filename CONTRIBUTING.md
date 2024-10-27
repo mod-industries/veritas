@@ -38,3 +38,12 @@ All that should be necessary to run tests is to run the included `test` command.
 ```bash
 just test
 ```
+
+### Running CI
+
+The CI pipeline is run with GitHub Actions and should be triggered automatically when changes are pushed to the repository.
+To run the CI pipeline locally, you can execute `tox` directly.
+
+```bash
+uv run tox
+```
