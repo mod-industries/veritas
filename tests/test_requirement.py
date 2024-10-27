@@ -1,7 +1,6 @@
 import pytest
 from semver import Version
 
-from veritas.exceptions import ParseError
 from veritas.requirement import VersionRequirement
 
 
@@ -27,7 +26,7 @@ def test_VersionRequirement_parse(requirement: str):
     ],
 )
 def test_VersionRequirement_parse_fails_on_invalid(requirement: str):
-    with pytest.raises(ParseError):
+    with pytest.raises(ValueError):
         VersionRequirement.parse(requirement)
 
 

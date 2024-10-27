@@ -1,7 +1,6 @@
 from attrs import define
 from semver.version import Version
 
-from veritas.exceptions import ParseError
 from veritas.spec import VersionSpec
 
 
@@ -16,6 +15,11 @@ class VersionRequirement:
         """String representation of the version requirement."""
 
         return ", ".join(str(spec) for spec in self.specs)
+
+    def __hash__(self) -> int:
+        """Hash of the version requirement."""
+
+        return hash(str(self))
 
     @classmethod
     def parse(cls, requirement: str) -> "VersionRequirement":
@@ -61,7 +65,7 @@ class VersionRequirement:
         max_constraint = min(spec_max_constraints) if len(spec_max_constraints) > 0 else None
 
         if max_constraint is not None and min_constraint >= max_constraint:
-            raise ParseError(
+            raise ValueError(
                 "Minimum version (inclusive) is greater than maximum version (exclusive) "
                 f'for requirement "{self!s}" (min: >={min_constraint}, max: <{max_constraint})'
             )

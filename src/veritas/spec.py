@@ -6,7 +6,6 @@ from attrs import define, field
 from semver import Version
 
 from veritas.constants import VERSION_SPECIFICATION_PATTERN
-from veritas.exceptions import ParseError
 
 WILD: Literal["*"] = "*"
 """Wildcard character for version specification parts."""
@@ -48,7 +47,7 @@ class VersionOperation(Enum):
     """Less than or equal to the specified version."""
 
 
-@define
+@define(hash=True)
 class VersionSpec:
     """Defines a single semantic version specification."""
 
@@ -150,7 +149,7 @@ class VersionSpec:
 
         match = re.match(VERSION_SPECIFICATION_PATTERN, specification)
         if match is None:
-            raise ParseError(f"Invalid version specification {specification!r}")
+            raise ValueError(f"Invalid version specification {specification!r}")
 
         return cls(
             op=VersionOperation(match.group("op")) if match.group("op") is not None else None,

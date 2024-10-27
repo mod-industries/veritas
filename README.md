@@ -66,8 +66,8 @@ VersionRequirement.parse("=1.2").check(Version.parse("1.2.3")) # True
 # Multiple version specifications can be combined using commas
 VersionRequirement.parse(">1.2, <2.0").check(Version.parse("1.5.0")) # True
 
-# Invalid version requirements will raise a ParseError
-VersionRequirement.parse("<1.2, >2.0") # veritas.exceptions.ParseError
+# Invalid version requirements will raise a ValueError
+VersionRequirement.parse("<1.2, >2.0") # ValueError
 
 # To determine the relationship between a version and a requirement, use the `compare` method
 VersionRequirement.parse("^1.3").compare(Version.parse("1.4.0")) # 1

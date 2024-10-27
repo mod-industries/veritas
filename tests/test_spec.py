@@ -6,7 +6,6 @@ from hypothesis.strategies import from_regex, just, one_of
 from semver import Version
 
 from veritas.constants import VERSION_SPECIFICATION_PATTERN
-from veritas.exceptions import ParseError
 from veritas.spec import VersionSpec
 
 
@@ -24,7 +23,7 @@ def test_VersionSpec_parse(specification: str):
     )
 )
 def test_VersionSpec_parse_fails_on_invalid(specification: str):
-    with pytest.raises(ParseError):
+    with pytest.raises(ValueError):
         VersionSpec.parse(specification)
 
 
