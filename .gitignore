@@ -175,4 +175,8 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
+# Ignore developer-specific Visual Studio Code config files
 .vscode/
+
+# Ignore root-level .py files
+/*.py
