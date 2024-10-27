@@ -8,6 +8,10 @@ from semver import Version
 from veritas.constants import VERSION_SPECIFICATION_PATTERN
 from veritas.exceptions import ParseError
 
+WILD: Literal["*"] = "*"
+"""Wildcard character for version specification parts."""
+
+
 VersionSpecPart_T = int | Literal["*"] | None
 """
 Defines the type of a version specification part.
@@ -69,13 +73,21 @@ class VersionSpec:
     def __str__(self) -> str:
         """String representation of the version specification."""
 
-        version = f"{self.op.value}" if self.op is not None else ""
-        version += f"{self.major if self.major != '*' else '*'}"
-        version += f".{self.minor if self.minor != '*' else '*'}" if self.minor is not None else ""
-        version += f".{self.patch if self.patch != '*' else '*'}" if self.patch is not None else ""
-        version += f"-{self.prerelease}" if self.prerelease is not None else ""
-        version += f"+{self.build}" if self.build is not None else ""
-        return version
+        parts: list[str] = []
+        if self.op is not None:
+            parts.append(self.op.value)
+
+        parts.append(str(self.major if self.major != WILD else WILD))
+        if self.minor is not None:
+            parts.append(f".{self.minor if self.minor != WILD else WILD}")
+        if self.patch is not None:
+            parts.append(f".{self.patch if self.patch != WILD else WILD}")
+        if self.prerelease is not None:
+            parts.append(f"-{self.prerelease if self.prerelease != WILD else WILD}")
+        if self.build is not None:
+            parts.append(f"+{self.build if self.build != WILD else WILD}")
+
+        return "".join(parts)
 
     @staticmethod
     def _parse_version_part(match: re.Match, group: str, wild_group: str) -> VersionSpecPart_T:
@@ -91,13 +103,35 @@ class VersionSpec:
             VersionSpecPart_T: The parsed version part.
         """
 
-        return (
-            int(match.group(group))
-            if match.group(group)
-            else "*"
-            if match.group(wild_group)
-            else None
-        )
+        part = match.group(group)
+        if part is not None:
+            return int(part)
+        elif match.group(wild_group) is not None:
+            return WILD
+
+        return None
+
+    @staticmethod
+    def _parse_version_str(match: re.Match, group: str, wild_group: str) -> str | None:
+        """
+        Parse a version string from a regular expression match.
+
+        Args:
+            match (re.Match): The regular expression match object.
+            group (str): The name of the group to extract.
+            wild_group (str): The name of the group that represents a wildcard.
+
+        Returns:
+            str | None: The parsed version string.
+        """
+
+        version = match.group(group)
+        if version is not None:
+            return version
+        elif match.group(wild_group) is not None:
+            return WILD
+
+        return None
 
     @classmethod
     def parse(cls, specification: str) -> "VersionSpec":
@@ -123,18 +157,18 @@ class VersionSpec:
             major=cls._parse_version_part(match, "major", "wild_major"),
             minor=cls._parse_version_part(match, "minor", "wild_minor"),
             patch=cls._parse_version_part(match, "patch", "wild_patch"),
-            prerelease=match.group("prerelease"),
-            build=match.group("build"),
+            prerelease=cls._parse_version_str(match, "prerelease", "wild_prerelease"),
+            build=cls._parse_version_str(match, "build", "wild_build"),
         )
 
     def __base_version(self) -> Version:
         """Get the base version of the specification."""
         return Version(
-            major=self.major if self.major and self.major != "*" else 0,
-            minor=self.minor if self.minor and self.minor != "*" else 0,
-            patch=self.patch if self.patch and self.patch != "*" else 0,
-            prerelease=self.prerelease,
-            build=self.build,
+            major=self.major if self.major and self.major != WILD else 0,
+            minor=self.minor if self.minor and self.minor != WILD else 0,
+            patch=self.patch if self.patch and self.patch != WILD else 0,
+            prerelease=self.prerelease if self.prerelease and self.prerelease != WILD else None,
+            build=self.build if self.build and self.build != WILD else None,
         )
 
     @property
@@ -150,12 +184,16 @@ class VersionSpec:
         if self.op == VersionOperation.GT:
             # When the version operation is GT, the minimum version is the next greater version
             # for the first known version part
-            if self.minor is None or self.minor == "*":
+            if self.minor is None or self.minor == WILD:
                 return version.bump_major()
-            elif self.patch is None or self.patch == "*":
+            elif self.patch is None or self.patch == WILD:
                 return version.bump_minor()
-            else:
+            elif self.prerelease is None or self.prerelease == WILD:
                 return version.bump_patch()
+            elif self.build is None or self.build == WILD:
+                return version.replace(prerelease=None).bump_prerelease(self.prerelease)
+            else:
+                return version.replace(build=None).bump_build(self.build)
 
         return version
 
@@ -166,7 +204,7 @@ class VersionSpec:
         if self.op in (
             VersionOperation.GT,
             VersionOperation.GTE,
-        ) or (self.major is None or self.major == "*"):
+        ) or (self.major is None or self.major == WILD):
             # When the major version is a wildcard or the version operation is GT or GTE,
             # there is no maximum version
             return None
@@ -178,10 +216,10 @@ class VersionSpec:
         elif self.op == VersionOperation.EQ:
             # When the version operation is EQ, the maximum version is next patch as we cannot
             # accept anything but the defined version exactly
-            if self.build is not None:
-                return version.bump_build("")
-            elif self.prerelease is not None:
-                return version.bump_prerelease("")
+            if self.build is not None and self.build != WILD:
+                return version.replace(build=None).bump_build(self.build)
+            elif self.prerelease is not None and self.prerelease != WILD:
+                return version.replace(prerelease=None).bump_prerelease(self.prerelease)
 
             return version.bump_patch()
         elif self.op is None or self.op in (
@@ -191,16 +229,16 @@ class VersionSpec:
         ):
             # When the version operation is not defined, or is CARET, TILDE, or LTE, the maximum
             # version is the next greater version for the first known part
-            if self.minor is None or self.minor == "*":
+            if self.minor is None or self.minor == WILD:
                 return version.bump_major()
-            elif self.patch is None or self.patch == "*":
+            elif self.patch is None or self.patch == WILD:
                 return version.bump_minor()
-            elif self.prerelease is None:
+            elif self.prerelease is None or self.prerelease == WILD:
                 return version.bump_patch()
-            elif self.build is None:
-                return version.bump_prerelease("")
+            elif self.build is None or self.build == WILD:
+                return version.replace(prerelease=None).bump_prerelease(self.prerelease)
             else:
-                return version.bump_build("")
+                return version.replace(build=None).bump_build(self.build)
 
         return None  # pragma: no cover
 
