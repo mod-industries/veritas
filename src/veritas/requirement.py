@@ -95,7 +95,7 @@ class VersionRequirement:
             version (Version): The version to check.
 
         Returns:
-            bool: True if the version satisfies the requirement, False otherwise.
+            bool: `True` if the version satisfies the requirement, `False` otherwise.
         """
 
         return self.compare(version) == 0

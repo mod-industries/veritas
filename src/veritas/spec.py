@@ -130,11 +130,11 @@ class VersionSpec:
     def __base_version(self) -> Version:
         """Get the base version of the specification."""
         return Version(
-            *(
-                self.major if self.major and self.major != "*" else 0,
-                self.minor if self.minor and self.minor != "*" else 0,
-                self.patch if self.patch and self.patch != "*" else 0,
-            )
+            major=self.major if self.major and self.major != "*" else 0,
+            minor=self.minor if self.minor and self.minor != "*" else 0,
+            patch=self.patch if self.patch and self.patch != "*" else 0,
+            prerelease=self.prerelease,
+            build=self.build,
         )
 
     @property
@@ -178,6 +178,11 @@ class VersionSpec:
         elif self.op == VersionOperation.EQ:
             # When the version operation is EQ, the maximum version is next patch as we cannot
             # accept anything but the defined version exactly
+            if self.build is not None:
+                return version.bump_build("")
+            elif self.prerelease is not None:
+                return version.bump_prerelease("")
+
             return version.bump_patch()
         elif self.op is None or self.op in (
             VersionOperation.CARET,
@@ -190,7 +195,43 @@ class VersionSpec:
                 return version.bump_major()
             elif self.patch is None or self.patch == "*":
                 return version.bump_minor()
-            else:
+            elif self.prerelease is None:
                 return version.bump_patch()
+            elif self.build is None:
+                return version.bump_prerelease("")
+            else:
+                return version.bump_build("")
 
         return None  # pragma: no cover
+
+    def compare(self, version: Version) -> int:
+        """
+        Compare the version with the specification.
+
+        Args:
+            version (Version): The version to compare.
+
+        Returns:
+            int: -1 if the version is less than the specification, 0 if equal, 1 if greater.
+        """
+
+        if self.min > version:
+            return -1
+
+        if self.max is not None and version >= self.max:
+            return 1
+
+        return 0
+
+    def check(self, version: Version) -> bool:
+        """
+        Check if the version satisfies the specification.
+
+        Args:
+            version (Version): The version to check.
+
+        Returns:
+            bool: `True` if the version satisfies the specification, `False` otherwise.
+        """
+
+        return self.compare(version) == 0
